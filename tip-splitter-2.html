@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Split — Tip & Bill Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F4F1EA;
+    --card: #FFFFFF;
+    --ink: #21201C;
+    --dim: #8A8578;
+    --coral: #E8623D;
+    --teal: #2E7D6B;
+    --line: rgba(33,32,28,0.1);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  body{
+    margin:0;
+    background: var(--bg);
+    min-height:100vh;
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:36px 16px 60px;
+  }
+  .wrap{width:100%; max-width:400px;}
+  h1{
+    font-size:26px;
+    font-weight:700;
+    text-align:center;
+    margin:0 0 4px;
+    letter-spacing:-0.02em;
+  }
+  .sub{
+    text-align:center;
+    color:var(--dim);
+    font-size:14px;
+    margin:0 0 28px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:24px 22px;
+    box-shadow: 0 20px 40px -16px rgba(33,32,28,0.15);
+  }
+
+  .field{margin-bottom:22px;}
+  .field-label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--dim);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:8px;
+  }
+
+  .bill-input{
+    display:flex; align-items:center;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:6px;
+  }
+  .bill-input span{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:28px; font-weight:600; opacity:0.4; margin-right:4px;
+  }
+  .bill-input input{
+    flex:1;
+    border:none; background:transparent;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:28px; font-weight:600;
+    color:var(--ink);
+    min-width:0;
+  }
+  .bill-input input:focus{outline:none;}
+
+  .tip-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+  }
+  .tip-btn{
+    padding:12px 4px;
+    min-height:46px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:transparent;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--ink);
+    cursor:pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .tip-btn.active{
+    background:var(--coral);
+    border-color:var(--coral);
+    color:#fff;
+  }
+  .tip-btn.custom-active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+  .custom-tip-row{
+    display:flex; align-items:center; gap:6px;
+    margin-top:8px;
+  }
+  .custom-tip-row input{
+    width:64px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    min-height:44px;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:14.5px;
+    text-align:center;
+    color:var(--ink);
+  }
+  .custom-tip-row input:focus{outline:none; border-color:var(--ink);}
+  .custom-tip-row label{font-size:13px; color:var(--dim); font-weight:600;}
+
+  .people-row{
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .stepper{
+    display:flex; align-items:center; gap:14px;
+  }
+  .stepper button{
+    width:40px; height:40px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:transparent;
+    font-size:20px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: background 0.12s;
+  }
+  .stepper button:hover{background:rgba(33,32,28,0.06);}
+  .stepper button:active{transform:scale(0.95);}
+  .stepper .count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px; font-weight:700;
+    min-width:28px; text-align:center;
+  }
+
+  .divider{
+    border-top:1px dashed var(--line);
+    margin:22px 0;
+  }
+
+  .results{
+    background: var(--ink);
+    border-radius:12px;
+    padding:20px 20px 22px;
+  }
+  .result-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:6px 0;
+    color:rgba(244,241,234,0.65);
+  }
+  .result-row .k{font-size:13px; font-weight:500;}
+  .result-row .v{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:15px; font-weight:600;
+    color:rgba(244,241,234,0.9);
+  }
+  .per-person{
+    margin-top:12px;
+    padding-top:14px;
+    border-top:1px solid rgba(244,241,234,0.15);
+    text-align:center;
+  }
+  .per-person .k{
+    font-size:12.5px;
+    color:rgba(244,241,234,0.55);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .per-person .v{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:38px;
+    font-weight:700;
+    color:#fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .per-person .v span{color:var(--coral);}
+
+  .footer-note{
+    text-align:center;
+    color:var(--dim);
+    font-size:12px;
+    margin-top:20px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Split</h1>
+  <p class="sub">Bill, tip, people. Done.</p>
+
+  <div class="card">
+    <div class="field">
+      <div class="field-label">Bill total</div>
+      <div class="bill-input">
+        <span>$</span>
+        <input type="number" id="billAmount" value="86.40" min="0" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Tip</div>
+      <div class="tip-grid" id="tipGrid">
+        <button class="tip-btn" data-tip="10">10%</button>
+        <button class="tip-btn" data-tip="15">15%</button>
+        <button class="tip-btn active" data-tip="18">18%</button>
+        <button class="tip-btn" data-tip="20">20%</button>
+      </div>
+      <div class="custom-tip-row">
+        <input type="number" id="customTip" placeholder="—" min="0" max="100">
+        <label>custom %</label>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:4px;">
+      <div class="field-label">People</div>
+      <div class="people-row">
+        <div class="stepper">
+          <button id="minusBtn">–</button>
+          <span class="count" id="peopleCount">2</span>
+          <button id="plusBtn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="results">
+      <div class="result-row">
+        <span class="k">Tip amount</span>
+        <span class="v" id="tipAmount">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="k">Total with tip</span>
+        <span class="v" id="totalAmount">$0.00</span>
+      </div>
+      <div class="per-person">
+        <div class="k">Each person pays</div>
+        <div class="v"><span>$</span><span id="perPerson">0.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">Split evenly across everyone at the table.</p>
+</div>
+
+<script>
+  const billAmount = document.getElementById('billAmount');
+  const tipGrid = document.getElementById('tipGrid');
+  const customTip = document.getElementById('customTip');
+  const peopleCount = document.getElementById('peopleCount');
+  const minusBtn = document.getElementById('minusBtn');
+  const plusBtn = document.getElementById('plusBtn');
+
+  let selectedTip = 18;
+  let people = 2;
+
+  function setActiveTipButton(val) {
+    tipGrid.querySelectorAll('.tip-btn').forEach(btn => {
+      btn.classList.toggle('active', parseFloat(btn.dataset.tip) === val);
+    });
+  }
+
+  tipGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tip-btn');
+    if (!btn) return;
+    selectedTip = parseFloat(btn.dataset.tip);
+    customTip.value = '';
+    setActiveTipButton(selectedTip);
+    calculate();
+  });
+
+  customTip.addEventListener('input', () => {
+    const v = parseFloat(customTip.value);
+    if (!isNaN(v)) {
+      selectedTip = v;
+      setActiveTipButton(-1); // clear preset highlight
+    }
+    calculate();
+  });
+
+  minusBtn.addEventListener('click', () => {
+    if (people > 1) people--;
+    peopleCount.textContent = people;
+    calculate();
+  });
+  plusBtn.addEventListener('click', () => {
+    if (people < 50) people++;
+    peopleCount.textContent = people;
+    calculate();
+  });
+
+  billAmount.addEventListener('input', calculate);
+
+  function calculate() {
+    const bill = parseFloat(billAmount.value) || 0;
+    const tipPct = isNaN(selectedTip) ? 0 : selectedTip;
+    const tip = bill * (tipPct / 100);
+    const total = bill + tip;
+    const each = total / people;
+
+    document.getElementById('tipAmount').textContent = '$' + tip.toFixed(2);
+    document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+    document.getElementById('perPerson').textContent = each.toFixed(2);
+  }
+
+  calculate();
+</script>
+</body>
+</html>
